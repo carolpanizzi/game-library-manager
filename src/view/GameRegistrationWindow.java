@@ -30,9 +30,15 @@ public class GameRegistrationWindow extends JFrame {
     private final JTextField pcRequirementsField;
     private final JTextField consoleNameField;
     private final JComboBox<String> physicalMediaCombo;
+    private final RegistrationListener registrationListener;
 
     public GameRegistrationWindow() {
+        this(null);
+    }
+
+    public GameRegistrationWindow(RegistrationListener registrationListener) {
         super("Cadastrar jogo");
+        this.registrationListener = registrationListener;
         titleField = new JTextField(22);
         genreField = new JTextField(22);
         hoursField = new JTextField(22);
@@ -142,9 +148,13 @@ public class GameRegistrationWindow extends JFrame {
         }
 
         String specificSummary;
+        String platform = "";
+        String requirements = "";
+        String consoleName = "";
+        boolean physicalMedia = false;
         if ("PC".equals(type)) {
-            String platform = pcPlatformField.getText().trim();
-            String requirements = pcRequirementsField.getText().trim();
+            platform = pcPlatformField.getText().trim();
+            requirements = pcRequirementsField.getText().trim();
             if (platform.isEmpty() || requirements.isEmpty()) {
                 showValidationError("Preencha a plataforma e os requisitos mínimos do jogo de PC.");
                 return;
@@ -155,7 +165,7 @@ public class GameRegistrationWindow extends JFrame {
             }
             specificSummary = "Plataforma: " + platform + "\nRequisitos mínimos: " + requirements;
         } else {
-            String consoleName = consoleNameField.getText().trim();
+            consoleName = consoleNameField.getText().trim();
             if (consoleName.isEmpty()) {
                 showValidationError("Informe o nome do console.");
                 return;
@@ -164,6 +174,7 @@ public class GameRegistrationWindow extends JFrame {
                 showValidationError("O nome do console não pode conter ponto e vírgula.");
                 return;
             }
+            physicalMedia = "Sim".equals(physicalMediaCombo.getSelectedItem());
             specificSummary = "Console: " + consoleName + "\nMídia física: "
                     + physicalMediaCombo.getSelectedItem();
         }
@@ -179,9 +190,11 @@ public class GameRegistrationWindow extends JFrame {
                 "Confirmar cadastro", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
 
         if (answer == JOptionPane.YES_OPTION) {
-            JOptionPane.showMessageDialog(this,
-                    "Dados validados e cadastro confirmado. A inclusão na biblioteca será conectada à etapa de integração.",
-                    "Cadastro confirmado", JOptionPane.INFORMATION_MESSAGE);
+            RegisteredGame registeredGame = new RegisteredGame(title, genre, hours, rating,
+                    type, platform, requirements, consoleName, physicalMedia);
+            if (registrationListener != null) {
+                registrationListener.onRegistration(registeredGame);
+            }
             dispose();
         }
     }
@@ -196,5 +209,51 @@ public class GameRegistrationWindow extends JFrame {
 
     public static void open() {
         SwingUtilities.invokeLater(() -> new GameRegistrationWindow().setVisible(true));
+    }
+
+    public interface RegistrationListener {
+        void onRegistration(RegisteredGame game);
+    }
+
+    /** Dados validados do formulário, independentes das classes de domínio. */
+    public static class RegisteredGame {
+        private final String title;
+        private final String genre;
+        private final double hours;
+        private final double rating;
+        private final String type;
+        private final String platform;
+        private final String requirements;
+        private final String consoleName;
+        private final boolean physicalMedia;
+
+        public RegisteredGame(String title, String genre, double hours, double rating,
+                              String type, String platform, String requirements,
+                              String consoleName, boolean physicalMedia) {
+            this.title = title;
+            this.genre = genre;
+            this.hours = hours;
+            this.rating = rating;
+            this.type = type;
+            this.platform = platform;
+            this.requirements = requirements;
+            this.consoleName = consoleName;
+            this.physicalMedia = physicalMedia;
+        }
+
+        public String getTitle() { return title; }
+        public String getGenre() { return genre; }
+        public double getHours() { return hours; }
+        public double getRating() { return rating; }
+        public String getType() { return type; }
+        public String getPlatform() { return platform; }
+        public String getRequirements() { return requirements; }
+        public String getConsoleName() { return consoleName; }
+        public boolean hasPhysicalMedia() { return physicalMedia; }
+
+        @Override
+        public String toString() {
+            return title + " | " + type + " | " + genre + " | " + hours + " h | Nota: " + rating;
+        }
     }
 }
