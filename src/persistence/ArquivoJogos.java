@@ -30,7 +30,7 @@ public class ArquivoJogos {
             linhas.add(formatarLinha(jogo));
         }
 
-        gravarArquivo(new File(caminho.trim()), linhas);
+        gravarArquivo(localizarArquivo(caminho.trim()), linhas);
     }
 
     public List<Game> carregar(String caminho) throws IOException {
@@ -38,9 +38,9 @@ public class ArquivoJogos {
             throw new IOException("Informe o caminho do arquivo.");
         }
 
-        File arquivo = new File(caminho.trim());
+        File arquivo = localizarArquivo(caminho.trim());
         if (!arquivo.exists()) {
-            throw new IOException("Arquivo não encontrado: " + arquivo.getPath());
+            throw new IOException("Arquivo não encontrado: " + arquivo.getAbsolutePath());
         }
 
         List<Game> jogos = new ArrayList<>();
@@ -148,6 +148,23 @@ public class ArquivoJogos {
         throw new IOException(
                 "A linha " + numeroLinha + " deve usar true ou false."
         );
+    }
+
+    private File localizarArquivo(String caminho) {
+        File informado = new File(caminho);
+        if (informado.isAbsolute() || informado.exists()) {
+            return informado;
+        }
+
+        File pasta = new File(System.getProperty("user.dir"));
+        for (int nivel = 0; nivel < 4 && pasta != null; nivel++) {
+            File candidato = new File(pasta, caminho);
+            if (candidato.exists()) {
+                return candidato;
+            }
+            pasta = pasta.getParentFile();
+        }
+        return informado;
     }
 
     private void gravarArquivo(File destino, List<String> linhas) throws IOException {
