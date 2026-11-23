@@ -30,7 +30,14 @@ public class ArquivoJogos {
             linhas.add(formatarLinha(jogo));
         }
 
-        gravarArquivo(localizarArquivo(caminho.trim()), linhas);
+        File destino = localizarArquivo(caminho.trim());
+        if (destino == null) {
+            throw new IOException(
+                    "Arquivo não encontrado: " + caminho.trim()
+                            + ". Ele precisa estar na pasta do projeto."
+            );
+        }
+        gravarArquivo(destino, linhas);
     }
 
     public List<Game> carregar(String caminho) throws IOException {
@@ -39,8 +46,11 @@ public class ArquivoJogos {
         }
 
         File arquivo = localizarArquivo(caminho.trim());
-        if (!arquivo.exists()) {
-            throw new IOException("Arquivo não encontrado: " + arquivo.getAbsolutePath());
+        if (arquivo == null) {
+            throw new IOException(
+                    "Arquivo não encontrado: " + caminho.trim()
+                            + ". Ele precisa estar na pasta do projeto."
+            );
         }
 
         List<Game> jogos = new ArrayList<>();
@@ -152,19 +162,42 @@ public class ArquivoJogos {
 
     private File localizarArquivo(String caminho) {
         File informado = new File(caminho);
-        if (informado.isAbsolute() || informado.exists()) {
+        if (informado.isFile()) {
             return informado;
         }
 
-        File pasta = new File(System.getProperty("user.dir"));
-        for (int nivel = 0; nivel < 4 && pasta != null; nivel++) {
+        File naPastaAtual = procurarSubindo(new File(System.getProperty("user.dir")), caminho);
+        if (naPastaAtual != null) {
+            return naPastaAtual;
+        }
+
+        String classpath = System.getProperty("java.class.path");
+        if (classpath == null) {
+            return null;
+        }
+        String[] partes = classpath.split(File.pathSeparator);
+        for (int i = 0; i < partes.length; i++) {
+            File pasta = new File(partes[i]);
+            if (!pasta.isDirectory()) {
+                pasta = pasta.getParentFile();
+            }
+            File encontrado = procurarSubindo(pasta, caminho);
+            if (encontrado != null) {
+                return encontrado;
+            }
+        }
+        return null;
+    }
+
+    private File procurarSubindo(File pasta, String caminho) {
+        for (int nivel = 0; nivel < 8 && pasta != null; nivel++) {
             File candidato = new File(pasta, caminho);
-            if (candidato.exists()) {
+            if (candidato.isFile()) {
                 return candidato;
             }
             pasta = pasta.getParentFile();
         }
-        return informado;
+        return null;
     }
 
     private void gravarArquivo(File destino, List<String> linhas) throws IOException {
