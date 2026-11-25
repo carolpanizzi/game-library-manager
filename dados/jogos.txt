@@ -1,0 +1,8 @@
+PC;1;Stardew Valley;Simulação;42.5;9.5;true;Windows;Intel i3, 4 GB RAM
+PC;2;Hades;Roguelike;30;10;true;Windows;DirectX 11
+PC;3;Celeste;Plataforma;20;8;false;Linux;2 GB RAM
+PC;4;Portal 2;Puzzle;10;9;true;Windows;2 GB RAM
+CONSOLE;5;God of War;Ação;25;9;true;PlayStation 5;false
+CONSOLE;6;Mario Kart 8 Deluxe;Corrida;15;8;false;Nintendo Switch;true
+CONSOLE;7;Hollow Knight;Metroidvania;35;9;true;Nintendo Switch;false
+CONSOLE;8;Forza Horizon 5;Corrida;5;7;false;Xbox Series X;true
